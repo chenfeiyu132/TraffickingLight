@@ -34,6 +34,7 @@ tfidf_array = response.toarray()
 print('count of feature names ', len(feature_names))
 print(dfT['full text'])
 print(tfidf_array)
+print("3")
 
 # This calculates the idf value for the terms in the posts and prints the highest ones
 indices = np.argsort(tfidf.idf_)[::-1]
