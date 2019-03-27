@@ -1,5 +1,6 @@
-from sklearn.feature_extraction.text import TfidfVectorizer, TfidfTransformer
+from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.feature_extraction import text
+from sklearn.feature_selection import chi2
 from sklearn import svm
 import pandas as pd
 import numpy as np
@@ -16,6 +17,7 @@ my_stop_words = text.ENGLISH_STOP_WORDS.union(['https'])
 lemmatizer = WordNetLemmatizer()
 dfT = pd.DataFrame(columns=['time stamp', 'user', 'full text', 'image url', 'Flag'])
 dfF = pd.DataFrame(columns=['time stamp', 'user', 'full text', 'image url', 'Flag'])
+dfA = pd.DataFrame(columns=['time stamp', 'user', 'full text', 'image url', 'Flag'])
 #ngram_range=(lower bound number of words, upper bound number of words)
 tfidf = TfidfVectorizer(ngram_range=(1,2), stop_words=my_stop_words, norm='l2', min_df=2)
 
@@ -59,13 +61,16 @@ for pos_csv in os.listdir(path_to_csv):
 
         dfT = dfT.append(csv_in[csv_in['Flag'] == 'Y'])
         dfF = dfF.append(csv_in[csv_in['Flag'] == 'N'])
+        dfA = dfA.append(csv_in)
 
 print('Number of True sets: ', dfT['full text'].count())
 print('Number of False sets: ', dfF['full text'].count())
 
+
+
 #Unprocessed truth set fed into TFIDF
 print(dfT['full text'])
-response = tfidf.fit_transform(dfT['full text'])
+response_true = tfidf.fit_transform(dfT['full text'])
 feature_names = tfidf.get_feature_names()
 topTerms(tfidf)
 
@@ -81,14 +86,28 @@ for row, index in zip(dfT['full text'], range(len(dfT['full text']))):
 print('Cleaned Up')
 print(dfT['full text'])
 
-#lemmatized tfidf set
-response_lemmatized = tfidf.fit_transform(dfT['full text'])
+#lemmatized true tfidf set
+response_true_lemmatized = tfidf.fit_transform(dfT['full text'])
 feature_names = tfidf.get_feature_names()
-tfidf_array = response_lemmatized.toarray()
+tfidf_array = response_true_lemmatized.toarray()
 print(tfidf_array)
 print(feature_names)
 print('count of feature names ', len(feature_names))
 topTerms(tfidf)
+
+#Analysis using Chi2
+
+response_all_lemmatized = tfidf.fit_transform(dfA['full text'])
+tf_array = response_all_lemmatized.toarray()
+top_n_terms = 10
+features_chi2 = chi2(tf_array, 'T' == dfA['Flag'])
+indices = np.argsort(features_chi2[0])
+feature_names = np.array(tfidf.get_feature_names())[indices]
+unigrams = [v for v in feature_names if len(v.split(' ')) == 1]
+bigrams = [v for v in feature_names if len(v.split(' ')) == 2]
+print("  . Most correlated unigrams:\n. {}".format('\n. '.join(unigrams[-top_n_terms:])))
+print("  . Most correlated bigrams:\n. {}".format('\n. '.join(bigrams[-top_n_terms:])))
+
 
 # This calculates the idf value for the terms in the posts and prints the highest ones
 
