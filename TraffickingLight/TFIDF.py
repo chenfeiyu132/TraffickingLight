@@ -81,7 +81,7 @@ print('Number of False sets: ', dfF['full text'].count())
 print(dfT['full text'])
 response_true = tfidf.fit_transform(dfT['full text'])
 feature_names = tfidf.get_feature_names()
-topTerms(tfidf)
+
 
 
 #lemmatization going on here
@@ -129,23 +129,6 @@ print("  . Most correlated bigrams:\n. {}".format('\n. '.join(bigrams[-top_n_ter
 #-------------------------Machine Learing Model Development------------------------#
 #create a svm classifier
 
-
-def benchmark(clf):
-    print('_' * 80)
-    print("Training: ")
-    print(clf)
-    t0 = time()
-    clf.fit(X_train, y_train)
-    train_time = time() - t0
-    print("train time: %0.3fs" % train_time)
-
-    t0 = time()
-    pred = clf.predict(X_test)
-    test_time = time() - t0
-    print("test time:  %0.3fs" % test_time)
-
-    score = metrics.accuracy_score(y_test, pred)
-    print("accuracy:   %0.3f" % score)
 
 def plot_confusion_matrix(y_true, y_pred, classes,
                           normalize=False,
@@ -206,14 +189,15 @@ X = tfidf.transform(dfA['full text'])
 
 y = np.asarray(dfA['Flag'], dtype="|S6")
 
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=42)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25)
 
 print("n samples and n features: ", X_test.shape)
 
 print('_' * 80)
 print("Training: ")
 t0 = time()
-clf = svm.SVC(kernel = 'linear', penalty="l1", dual=False, tol=1e-3)
+
+clf = svm.LinearSVC(penalty="l1", dual=False, tol=1e-3)
 
 clf.fit(X_train, y_train)
 train_time = time() - t0
@@ -226,14 +210,16 @@ print("test time:  %0.3fs" % test_time)
 score = metrics.accuracy_score(y_test, pred)
 print("accuracy:   %0.3f" % score)
 
+print("confusion matrix:")
+
+print(metrics.confusion_matrix(y_test, pred))
+
 
 # Plot non-normalized confusion matrix
-plot_confusion_matrix(y_test, pred, classes=['Non Trafficking', 'Trafficking'],
-                      title='Confusion matrix, without normalization')
+plot_confusion_matrix(y_test, pred, classes=['Non Trafficking', 'Trafficking'], title='Confusion matrix, without normalization')
 
 # Plot normalized confusion matrix
-plot_confusion_matrix(y_test, pred, classes=['Non Trafficking', 'Trafficking'], normalize=True,
-                      title='Normalized confusion matrix')
+plot_confusion_matrix(y_test, pred, classes=['Non Trafficking', 'Trafficking'], normalize=True, title='Normalized confusion matrix')
 
 plt.show()
 

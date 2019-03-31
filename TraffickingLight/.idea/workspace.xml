@@ -15,7 +15,7 @@
     <SUITE FILE_PATH="coverage/TraffickingLight$ImportTweet.coverage" NAME="ImportTweet Coverage Results" MODIFIED="1553840728464" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/TraffickingLight$Flag.coverage" NAME="Flag Coverage Results" MODIFIED="1553995115373" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/TraffickingLight$scratch.coverage" NAME="scratch Coverage Results" MODIFIED="1554005826264" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$APPLICATION_CONFIG_DIR$/scratches" />
-    <SUITE FILE_PATH="coverage/TraffickingLight$TFIDF.coverage" NAME="TFIDF Coverage Results" MODIFIED="1554014942828" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/TraffickingLight$TFIDF.coverage" NAME="TFIDF Coverage Results" MODIFIED="1554018165117" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/TraffickingLight$TraffickingLight.coverage" NAME="TraffickingLight Coverage Results" MODIFIED="1547000470317" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/.." />
   </component>
   <component name="DatabaseView">
@@ -67,14 +67,14 @@
         <counts>
           <entry key="csv" value="2" />
           <entry key="dummy" value="21" />
-          <entry key="py" value="11075" />
+          <entry key="py" value="11349" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
           <entry key="CSV" value="2" />
           <entry key="PLAIN_TEXT" value="21" />
-          <entry key="Python" value="10536" />
+          <entry key="Python" value="10810" />
           <entry key="RegExp" value="2" />
           <entry key="Scratch" value="537" />
         </counts>
@@ -98,11 +98,11 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/TFIDF.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="350">
-              <caret line="235" column="58" lean-forward="true" selection-start-line="235" selection-start-column="58" selection-end-line="235" selection-end-column="58" />
+            <state relative-caret-position="231">
+              <caret line="199" column="55" lean-forward="true" selection-start-line="199" selection-start-column="55" selection-end-line="199" selection-end-column="55" />
               <folding>
                 <element signature="e#0#59#0" expanded="true" />
-                <marker date="1554014967900" expanded="true" signature="2900:3188" ph="..." />
+                <marker date="1554018165110" expanded="true" signature="2875:3162" ph="..." />
               </folding>
             </state>
           </provider>
@@ -406,7 +406,7 @@
       <window_info anchor="bottom" id="Docker" order="5" show_stripe_button="false" />
       <window_info anchor="bottom" id="Message" order="6" />
       <window_info anchor="bottom" id="Find" order="7" sideWeight="0.49919224" weight="0.32739726" />
-      <window_info active="true" anchor="bottom" id="Run" order="8" sideWeight="0.49416342" visible="true" weight="0.43013698" />
+      <window_info anchor="bottom" id="Run" order="8" sideWeight="0.49416342" visible="true" weight="0.43013698" />
       <window_info anchor="bottom" id="Debug" order="9" weight="0.4" />
       <window_info anchor="bottom" id="Cvs" order="10" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="11" weight="0.4" />
@@ -414,7 +414,7 @@
       <window_info anchor="right" id="Database" order="0" weight="0.32714054" />
       <window_info anchor="right" id="Coverage" order="1" side_tool="true" />
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="2" type="SLIDING" weight="0.4" />
-      <window_info anchor="right" id="SciView" order="3" visible="true" weight="0.2996769" />
+      <window_info active="true" anchor="right" id="SciView" order="3" visible="true" weight="0.2996769" />
       <window_info anchor="right" id="Ant Build" order="4" weight="0.25" />
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="5" weight="0.25" />
     </layout>
@@ -531,11 +531,11 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/TFIDF.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="350">
-          <caret line="235" column="58" lean-forward="true" selection-start-line="235" selection-start-column="58" selection-end-line="235" selection-end-column="58" />
+        <state relative-caret-position="231">
+          <caret line="199" column="55" lean-forward="true" selection-start-line="199" selection-start-column="55" selection-end-line="199" selection-end-column="55" />
           <folding>
             <element signature="e#0#59#0" expanded="true" />
-            <marker date="1554014967900" expanded="true" signature="2900:3188" ph="..." />
+            <marker date="1554018165110" expanded="true" signature="2875:3162" ph="..." />
           </folding>
         </state>
       </provider>
