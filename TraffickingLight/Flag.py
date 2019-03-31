@@ -22,11 +22,11 @@ def flag_input(df):
 
 
 
-csv_in = pd.read_csv('/Users/Ju1y/Documents/Trafficking Light/S5/Training Data 12.csv')
+csv_in = pd.read_csv('/Users/Ju1y/Documents/Trafficking Light/S8/Training Data 15.csv')
 total_rows = len(csv_in['full text'])
 
 csv_in['Flag'] = flag_input(csv_in)
-csv_in.to_csv('/Users/Ju1y/Documents/Trafficking Light/Flagged/Training Data Flagged 8.csv', index = False) #writing back to new csv file
+csv_in.to_csv('/Users/Ju1y/Documents/Trafficking Light/Flagged/Training Data Flagged 10.csv', index = False) #writing back to new csv file
 
 
 

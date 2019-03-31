@@ -1,7 +1,13 @@
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.feature_extraction import text
-from sklearn.feature_selection import chi2
-from sklearn import svm
+from sklearn.feature_selection import chi2, SelectKBest
+from sklearn.svm import LinearSVC
+from time import time
+from sklearn import metrics
+from sklearn.pipeline import Pipeline
+from sklearn.model_selection import train_test_split
+from sklearn import preprocessing
+
 import pandas as pd
 import numpy as np
 import os
@@ -19,14 +25,14 @@ dfT = pd.DataFrame(columns=['time stamp', 'user', 'full text', 'image url', 'Fla
 dfF = pd.DataFrame(columns=['time stamp', 'user', 'full text', 'image url', 'Flag'])
 dfA = pd.DataFrame(columns=['time stamp', 'user', 'full text', 'image url', 'Flag'])
 #ngram_range=(lower bound number of words, upper bound number of words)
-tfidf = TfidfVectorizer(ngram_range=(1,2), stop_words=my_stop_words, norm='l2', min_df=2)
+tfidf = TfidfVectorizer(ngram_range=(1,2), stop_words=my_stop_words, min_df=2, sublinear_tf=True)
 
 
 #lemmatization method
 def clean(tweet):
 
     cleaned_tweet = re.sub(r'([^\w\s]|\d)+', '', tweet.lower())
-    return ' '.join([lemmatizer.lemmatize(i, 'v')
+    return ' '.join([lemmatizer.lemmatize(i)
                 for i in cleaned_tweet.split() if i not in my_stop_words])
 
 #To form dataframe for matrix in preparation for scatter plot
@@ -46,6 +52,7 @@ def plotTFIDF(tfidf_dictionary):
     plt.show()
 
 
+# This calculates the idf value for the terms in the posts and prints the highest ones
 def topTerms(vectorizer):
     indices = np.argsort(vectorizer.idf_)[::-1]
     top_n = 40
@@ -59,9 +66,10 @@ for pos_csv in os.listdir(path_to_csv):
     if pos_csv.endswith('.csv'):
         csv_in = pd.read_csv(path_to_csv + pos_csv)
 
-        dfT = dfT.append(csv_in[csv_in['Flag'] == 'Y'])
-        dfF = dfF.append(csv_in[csv_in['Flag'] == 'N'])
+        dfT = dfT.append(csv_in[csv_in['Flag'] == 1])
+        dfF = dfF.append(csv_in[csv_in['Flag'] == 0])
         dfA = dfA.append(csv_in)
+
 
 print('Number of True sets: ', dfT['full text'].count())
 print('Number of False sets: ', dfF['full text'].count())
@@ -77,11 +85,14 @@ topTerms(tfidf)
 
 #lemmatization going on here
 
-for row, index in zip(dfT['full text'], range(len(dfT['full text']))):
-    row = clean(row)
-    #cleans out the first 'b', any phrases that starts with https, and rt's
-    row = re.sub(r'(^b)|(\b(https)\w*\s)|(\brt\s)', '', row)
-    dfT['full text'].iloc[index] = row
+def lemmatize(df):
+    for row, index in zip(df['full text'], range(len(df['full text']))):
+        row = clean(row)
+        # cleans out the first 'b', any phrases that starts with https, and rt's
+        row = re.sub(r'(^b)|(\b(https)\w*\s)|(\brt\s)', '', row)
+        df['full text'].iloc[index] = row
+
+lemmatize(dfT)
 
 print('Cleaned Up')
 print(dfT['full text'])
@@ -97,10 +108,12 @@ topTerms(tfidf)
 
 #Analysis using Chi2
 
+lemmatize(dfA)
+
 response_all_lemmatized = tfidf.fit_transform(dfA['full text'])
 tf_array = response_all_lemmatized.toarray()
-top_n_terms = 10
-features_chi2 = chi2(tf_array, 'T' == dfA['Flag'])
+top_n_terms = 5
+features_chi2 = chi2(tf_array, dfA['Flag'] == 1)
 indices = np.argsort(features_chi2[0])
 feature_names = np.array(tfidf.get_feature_names())[indices]
 unigrams = [v for v in feature_names if len(v.split(' ')) == 1]
@@ -109,16 +122,56 @@ print("  . Most correlated unigrams:\n. {}".format('\n. '.join(unigrams[-top_n_t
 print("  . Most correlated bigrams:\n. {}".format('\n. '.join(bigrams[-top_n_terms:])))
 
 
-# This calculates the idf value for the terms in the posts and prints the highest ones
+
 
 
 #-------------------------Machine Learing Model Development------------------------#
 #create a svm classifier
-clf = svm.SVC(kernel= 'linear')
+
+
+def benchmark(clf):
+    print('_' * 80)
+    print("Training: ")
+    print(clf)
+    t0 = time()
+    clf.fit(X_train, y_train)
+    train_time = time() - t0
+    print("train time: %0.3fs" % train_time)
+
+    t0 = time()
+    pred = clf.predict(X_test)
+    test_time = time() - t0
+    print("test time:  %0.3fs" % test_time)
+
+    score = metrics.accuracy_score(y_test, pred)
+    print("accuracy:   %0.3f" % score)
 
 
 
 
+X = tfidf.transform(dfA['full text'])
+
+y = np.asarray(dfA['Flag'])
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=42)
+
+print("n samples and n features: ", X_test.shape)
+
+print('_' * 80)
+print("Training: ")
+t0 = time()
+clf = LinearSVC(penalty="l1", dual=False, tol=1e-3)
+
+clf.fit(X_train, y_train)
+train_time = time() - t0
+print("train time: %0.3fs" % train_time)
+
+pred = clf.predict(X_test)
+test_time = time() - t0
+print("test time:  %0.3fs" % test_time)
+
+score = metrics.accuracy_score(y_test, pred)
+print("accuracy:   %0.3f" % score)
 
 
 
