@@ -1,9 +1,10 @@
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.feature_extraction import text
 from sklearn.feature_selection import chi2, SelectKBest
-from sklearn.svm import LinearSVC
+from sklearn import svm
 from time import time
 from sklearn import metrics
+from sklearn.metrics import confusion_matrix
 from sklearn.pipeline import Pipeline
 from sklearn.model_selection import train_test_split
 from sklearn import preprocessing
@@ -146,12 +147,64 @@ def benchmark(clf):
     score = metrics.accuracy_score(y_test, pred)
     print("accuracy:   %0.3f" % score)
 
+def plot_confusion_matrix(y_true, y_pred, classes,
+                          normalize=False,
+                          title=None,
+                          cmap=plt.cm.Blues):
+    """
+    This function prints and plots the confusion matrix.
+    Normalization can be applied by setting `normalize=True`.
+    """
+    if not title:
+        if normalize:
+            title = 'Normalized confusion matrix'
+        else:
+            title = 'Confusion matrix, without normalization'
 
+    # Compute confusion matrix
+    cm = confusion_matrix(y_true, y_pred)
+    if normalize:
+        cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
+        print("Normalized confusion matrix")
+    else:
+        print('Confusion matrix, without normalization')
+
+    print(cm)
+
+    fig, ax = plt.subplots()
+    im = ax.imshow(cm, interpolation='nearest', cmap=cmap)
+    ax.figure.colorbar(im, ax=ax)
+    # We want to show all ticks...
+    ax.set(xticks=np.arange(cm.shape[1]),
+           yticks=np.arange(cm.shape[0]),
+           # ... and label them with the respective list entries
+           xticklabels=classes, yticklabels=classes,
+           title=title,
+           ylabel='True label',
+           xlabel='Predicted label')
+
+    # Rotate the tick labels and set their alignment.
+    plt.setp(ax.get_xticklabels(), rotation=45, ha="right",
+             rotation_mode="anchor")
+
+    # Loop over data dimensions and create text annotations.
+    fmt = '.2f' if normalize else 'd'
+    thresh = cm.max() / 2.
+    for i in range(cm.shape[0]):
+        for j in range(cm.shape[1]):
+            ax.text(j, i, format(cm[i, j], fmt),
+                    ha="center", va="center",
+                    color="white" if cm[i, j] > thresh else "black")
+    fig.tight_layout()
+    return ax
+
+
+np.set_printoptions(precision=2)
 
 
 X = tfidf.transform(dfA['full text'])
 
-y = np.asarray(dfA['Flag'])
+y = np.asarray(dfA['Flag'], dtype="|S6")
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=42)
 
@@ -160,7 +213,7 @@ print("n samples and n features: ", X_test.shape)
 print('_' * 80)
 print("Training: ")
 t0 = time()
-clf = LinearSVC(penalty="l1", dual=False, tol=1e-3)
+clf = svm.SVC(kernel = 'linear', penalty="l1", dual=False, tol=1e-3)
 
 clf.fit(X_train, y_train)
 train_time = time() - t0
@@ -173,6 +226,16 @@ print("test time:  %0.3fs" % test_time)
 score = metrics.accuracy_score(y_test, pred)
 print("accuracy:   %0.3f" % score)
 
+
+# Plot non-normalized confusion matrix
+plot_confusion_matrix(y_test, pred, classes=['Non Trafficking', 'Trafficking'],
+                      title='Confusion matrix, without normalization')
+
+# Plot normalized confusion matrix
+plot_confusion_matrix(y_test, pred, classes=['Non Trafficking', 'Trafficking'], normalize=True,
+                      title='Normalized confusion matrix')
+
+plt.show()
 
 
 
