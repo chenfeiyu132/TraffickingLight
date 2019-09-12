@@ -1,19 +1,19 @@
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.feature_extraction import text
-from sklearn.feature_selection import chi2, SelectKBest
-from sklearn import svm
+from sklearn.feature_selection import chi2
+from sklearn.svm import LinearSVC
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.naive_bayes import MultinomialNB, BernoulliNB
+from sklearn.linear_model import LogisticRegression
 from time import time
-from sklearn import metrics
 from sklearn.metrics import confusion_matrix
-from sklearn.pipeline import Pipeline
 from sklearn.model_selection import train_test_split
-from sklearn import preprocessing
+from imblearn.over_sampling import RandomOverSampler
 
 import pandas as pd
 import numpy as np
 import os
 import matplotlib.pylab as plt
-import nltk
 from nltk.stem import WordNetLemmatizer
 import re
 
@@ -38,18 +38,18 @@ def clean(tweet):
 
 #To form dataframe for matrix in preparation for scatter plot
 def plotTFIDF(tfidf_dictionary):
-    dfS = pd.DataFrame(columns=['word', 'TFIDF'])
+    dfS = pd.DataFrame(columns=['word', 'IDF'])
     count = 0
     for key, value in tfidf_dictionary.items():
         dfS.loc[count] = [count + 1, value]
         count += 1
 
     # Scatterplot
-    plt.scatter(x=dfS['word'], y=dfS['TFIDF'], c='DarkBlue')
-    plt.xlabel('words', fontsize=16)
-    plt.ylabel('TFIDF', fontsize=18)
-    plt.title('TFIDF values of keywords')
-    plt.savefig('TFIDF Graph.png')
+    plt.scatter(x=dfS['word'], y=dfS['IDF'], c='DarkBlue')
+    plt.xlabel('nth_feature', fontsize=16)
+    plt.ylabel('IDF', fontsize=18)
+    plt.title('IDF values of keywords')
+    plt.savefig('IDF Graph.png')
     plt.show()
 
 
@@ -67,8 +67,8 @@ for pos_csv in os.listdir(path_to_csv):
     if pos_csv.endswith('.csv'):
         csv_in = pd.read_csv(path_to_csv + pos_csv)
 
-        dfT = dfT.append(csv_in[csv_in['Flag'] == 1])
-        dfF = dfF.append(csv_in[csv_in['Flag'] == 0])
+        dfT = dfT.append(csv_in[csv_in['Flag'] == 1]).astype('U13')
+        dfF = dfF.append(csv_in[csv_in['Flag'] == 0]).astype('U13')
         dfA = dfA.append(csv_in)
 
 
@@ -90,7 +90,7 @@ def lemmatize(df):
     for row, index in zip(df['full text'], range(len(df['full text']))):
         row = clean(row)
         # cleans out the first 'b', any phrases that starts with https, and rt's
-        row = re.sub(r'(^b)|(\b(https)\w*\s)|(\brt\s)', '', row)
+        row = re.sub(r'|(\b(https)\w*\s)|(\brt\s)', '', row)
         df['full text'].iloc[index] = row
 
 lemmatize(dfT)
@@ -111,19 +111,23 @@ topTerms(tfidf)
 
 lemmatize(dfA)
 
+
 response_all_lemmatized = tfidf.fit_transform(dfA['full text'])
 tf_array = response_all_lemmatized.toarray()
-top_n_terms = 5
+top_n_terms = 60
 features_chi2 = chi2(tf_array, dfA['Flag'] == 1)
 indices = np.argsort(features_chi2[0])
 feature_names = np.array(tfidf.get_feature_names())[indices]
+
+
 unigrams = [v for v in feature_names if len(v.split(' ')) == 1]
 bigrams = [v for v in feature_names if len(v.split(' ')) == 2]
 print("  . Most correlated unigrams:\n. {}".format('\n. '.join(unigrams[-top_n_terms:])))
 print("  . Most correlated bigrams:\n. {}".format('\n. '.join(bigrams[-top_n_terms:])))
 
+feature_names = feature_names[::-1]
 
-
+print(feature_names[:top_n_terms])
 
 
 #-------------------------Machine Learing Model Development------------------------#
@@ -184,44 +188,83 @@ def plot_confusion_matrix(y_true, y_pred, classes,
 
 np.set_printoptions(precision=2)
 
+models = [
+    RandomForestClassifier(n_estimators= 100, max_depth= 3),
+    LinearSVC(penalty='l1', dual=False, tol=1e-3),
+    MultinomialNB(alpha=.01),
+    LogisticRegression(random_state=0, solver='lbfgs', multi_class='auto'),
+    BernoulliNB(alpha=.01)
+]
+
 
 X = tfidf.transform(dfA['full text'])
-
 y = np.asarray(dfA['Flag'], dtype="|S6")
 
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=.25)
+
+#oversampling
+ros = RandomOverSampler(random_state=0)
+X_train, y_train = ros.fit_resample(X_train, y_train)
 
 print("n samples and n features: ", X_test.shape)
 
 print('_' * 80)
 print("Training: ")
-t0 = time()
-
-clf = svm.LinearSVC(penalty="l1", dual=False, tol=1e-3)
-
-clf.fit(X_train, y_train)
-train_time = time() - t0
-print("train time: %0.3fs" % train_time)
-
-pred = clf.predict(X_test)
-test_time = time() - t0
-print("test time:  %0.3fs" % test_time)
-
-score = metrics.accuracy_score(y_test, pred)
-print("accuracy:   %0.3f" % score)
-
-print("confusion matrix:")
-
-print(metrics.confusion_matrix(y_test, pred))
 
 
-# Plot non-normalized confusion matrix
-plot_confusion_matrix(y_test, pred, classes=['Non Trafficking', 'Trafficking'], title='Confusion matrix, without normalization')
+#options: Multinomial NB, Linear SVC, SVC with different kernels, Bernoulli NB, Random Forest, Logistic Regression
 
-# Plot normalized confusion matrix
-plot_confusion_matrix(y_test, pred, classes=['Non Trafficking', 'Trafficking'], normalize=True, title='Normalized confusion matrix')
+df_unmarked = pd.DataFrame(columns= ['time stamp', 'user', 'full text', 'image url'])
+unmarked_path = '/Users/Ju1y/Documents/Trafficking Light/S12/Training Data 19'
+csv_in = pd.read_csv(unmarked_path+'.csv')
 
-plt.show()
+df_unmarked = df_unmarked.append(csv_in).astype('U13')
+
+
+#cv_df = pd.DataFrame(columns=['model_name', 'time', 'accuracy'])
+for model in models:
+    model_name = model.__class__.__name__
+    t0 = time()
+
+    print('-----------', model_name, '----------------')
+    clf = model
+
+    clf.fit(X, y)
+    train_time = time() - t0
+
+    pred = clf.predict(tfidf.transform(df_unmarked['full text'])).astype('U13')
+    df_unmarked.loc[:, model_name] = pred
+
+    #pred = clf.predict(X_test)
+    #test_time = time() - t0
+
+csv_in = df_unmarked
+csv_in.to_csv(unmarked_path+' Flagged.csv', index=False)
+
+#Generates scores for confusion matrix
+    #score = metrics.accuracy_score(y_test, pred)
+
+    #cv_df.loc[len(cv_df)] =[model_name, test_time, score]
+
+    #print("confusion matrix:")
+
+    #print(metrics.confusion_matrix(y_test, pred))
+
+
+    # Plot non-normalized confusion matrix
+    #plot_confusion_matrix(y_test, pred, classes=['Non Trafficking', 'Trafficking'], title=('Confusion matrix, without normalization for '+ model_name))
+
+    # Plot normalized confusion matrix
+    #plot_confusion_matrix(y_test, pred, classes=['Non Trafficking', 'Trafficking'], normalize=True, title=('Normalized confusion matrix for '+ model_name))
+
+    #plt.show()
+
+
+
+
+#print(cv_df)
+
+
 
 
 
